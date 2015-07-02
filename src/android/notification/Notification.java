@@ -56,16 +56,16 @@ public class Notification {
     static final String PREF_KEY = "LocalNotification";
 
     // Application context passed by constructor
-    private final Context context;
+    protected final Context context;
 
     // Notification options passed by JS
-    private final Options options;
+    protected final Options options;
 
     // Builder with full configuration
-    private final NotificationCompat.Builder builder;
+    protected final NotificationCompat.Builder builder;
 
     // Receiver to handle the trigger event
-    private Class<?> receiver = defaultReceiver;
+    protected Class<?> receiver = defaultReceiver;
 
     /**
      * Constructor
@@ -227,7 +227,7 @@ public class Notification {
      * Show as local notification when in background.
      */
     @SuppressWarnings("deprecation")
-    private void showNotification () {
+    protected void showNotification () {
         int id = getOptions().getId();
 
         if (Build.VERSION.SDK_INT <= 15) {
@@ -303,7 +303,7 @@ public class Notification {
     /**
      * Remove the notification from the Android shared Preferences.
      */
-    private void unpersist () {
+    protected void unpersist () {
         SharedPreferences.Editor editor = getPrefs().edit();
 
         editor.remove(options.getIdStr());
@@ -325,7 +325,7 @@ public class Notification {
     /**
      * Notification manager for the application.
      */
-    private NotificationManager getNotMgr () {
+    protected NotificationManager getNotMgr () {
         return (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
     }
@@ -333,7 +333,7 @@ public class Notification {
     /**
      * Alarm manager for the application.
      */
-    private AlarmManager getAlarmMgr () {
+    protected AlarmManager getAlarmMgr () {
         return (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
     }
 

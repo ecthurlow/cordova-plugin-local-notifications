@@ -29,31 +29,16 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Random;
-
+import android.util.Log;
 /**
- * Builder class for local notifications. Build fully configured local
+ * Builder class for summary local notifications. Build fully configured local
  * notification specified by JSON object passed from JS side.
  */
-public class Builder {
-
-    // Application context passed by constructor
-    protected final Context context;
-
-    // Notification options passed by JS
-    protected final Options options;
-
-    // Receiver to handle the trigger event
-    protected Class<?> triggerReceiver;
-
-    // Receiver to handle the clear event
-    protected Class<?> clearReceiver = ClearReceiver.class;
-
-    // Activity to handle the click event
-    protected Class<?> clickActivity = ClickActivity.class;
-
+public class SummaryBuilder extends Builder{
     /**
      * Constructor
      *
@@ -62,72 +47,31 @@ public class Builder {
      * @param options
      *      Notification options
      */
-    public Builder(Context context, JSONObject options) {
-        this.context = context;
-        this.options = new Options(context).parse(options);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param options
-     *      Notification options
-     */
-    public Builder(Options options) {
-        this.context = options.getContext();
-        this.options = options;
-    }
-
-    /**
-     * Set trigger receiver.
-     *
-     * @param receiver
-     *      Broadcast receiver
-     */
-    public Builder setTriggerReceiver(Class<?> receiver) {
-        this.triggerReceiver = receiver;
-        return this;
-    }
-
-    /**
-     * Set clear receiver.
-     *
-     * @param receiver
-     *      Broadcast receiver
-     */
-    public Builder setClearReceiver(Class<?> receiver) {
-        this.clearReceiver = receiver;
-        return this;
-    }
-
-    /**
-     * Set click activity.
-     *
-     * @param activity
-     *      Activity
-     */
-    public Builder setClickActivity(Class<?> activity) {
-        this.clickActivity = activity;
-        return this;
+    public SummaryBuilder(Context context, JSONObject options) {
+        super(context, options);
     }
 
     /**
      * Creates the notification with all its options passed through JS.
      */
-    public Notification build() {
+    public SummaryNotification build() {
+        Log.d("LocalNotification", "SummaryBuilder.build()");
+         // Insert pending into text, if slot is defined
+        String summaryText = new String(SummaryNotification.text).replace("%d", Integer.toString(SummaryNotification.pending));
+
         Uri sound = options.getSoundUri();
         NotificationCompat.BigTextStyle style;
         NotificationCompat.Builder builder;
 
         style = new NotificationCompat.BigTextStyle()
-                .bigText(options.getText());
+                .bigText(summaryText);
 
         builder = new NotificationCompat.Builder(context)
                 .setDefaults(0)
                 .setContentTitle(options.getTitle())
-                .setContentText(options.getText())
-                .setNumber(options.getBadgeNumber())
-                .setTicker(options.getText())
+                .setContentText(summaryText)
+                .setNumber(SummaryNotification.pending)
+                .setTicker(summaryText)
                 .setSmallIcon(options.getSmallIcon())
                 .setLargeIcon(options.getIconBitmap())
                 .setAutoCancel(options.isAutoClear())
@@ -142,7 +86,20 @@ public class Builder {
         applyDeleteReceiver(builder);
         applyContentReceiver(builder);
 
-        return new Notification(context, options, builder, triggerReceiver);
+        return new SummaryNotification(context, options, builder, triggerReceiver);
+    }
+
+    private String bundleOptions(){
+
+        try {
+            JSONObject jsonOpts = new JSONObject(options.toString());
+            jsonOpts.put("isSummary", true);
+            return jsonOpts.toString();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return options.toString();
     }
 
     /**
@@ -153,13 +110,14 @@ public class Builder {
      *      Local notification builder instance
      */
     private void applyDeleteReceiver(NotificationCompat.Builder builder) {
-
+        Log.d("LocalNotification", "SummaryBuilder.applyDeleteReceiver()");
         if (clearReceiver == null)
             return;
 
+
         Intent deleteIntent = new Intent(context, clearReceiver)
-                .setAction(options.getIdStr())
-                .putExtra(Options.EXTRA, options.toString());
+                .setAction(SummaryNotification.tag)
+                .putExtra(Options.EXTRA, bundleOptions());
 
         PendingIntent dpi = PendingIntent.getBroadcast(
                 context, 0, deleteIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -175,12 +133,12 @@ public class Builder {
      *      Local notification builder instance
      */
     private void applyContentReceiver(NotificationCompat.Builder builder) {
-
+        Log.d("LocalNotification", "SummaryBuilder.applyContentReceiver()");
         if (clickActivity == null)
             return;
 
         Intent intent = new Intent(context, clickActivity)
-                .putExtra(Options.EXTRA, options.toString())
+                .putExtra(Options.EXTRA, bundleOptions())
                 .setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         int requestCode = new Random().nextInt();
@@ -190,5 +148,6 @@ public class Builder {
 
         builder.setContentIntent(contentIntent);
     }
+
 
 }

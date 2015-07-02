@@ -22,7 +22,7 @@
  */
 
 package de.appplant.cordova.plugin.notification;
-
+import android.util.Log;
 /**
  * The clear intent receiver is triggered when the user clears a
  * notification manually. It un-persists the cleared notification from the
@@ -38,6 +38,7 @@ public class ClearReceiver extends AbstractClearReceiver {
      */
     @Override
     public void onClear (Notification notification) {
+        Log.d("LocalNotification", "notification.ClearReceiver.onClear()");
         notification.clear();
     }
 

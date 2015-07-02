@@ -55,8 +55,12 @@ abstract public class AbstractClickActivity extends Activity {
             String data = bundle.getString(Options.EXTRA);
             JSONObject options = new JSONObject(data);
 
-            Builder builder =
-                    new Builder(context, options);
+            Builder builder;
+            if(!options.optBoolean("isSummary", false)){
+                builder = new Builder(context, options);
+            }else{
+                builder = new SummaryBuilder(context, options);
+            }
 
             Notification notification =
                     buildNotification(builder);

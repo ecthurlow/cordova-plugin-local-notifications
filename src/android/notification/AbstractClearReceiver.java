@@ -31,6 +31,8 @@ import android.os.Bundle;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
 /**
  * Abstract delete receiver for local notifications. Creates the local
  * notification and calls the event functions for further proceeding.
@@ -47,6 +49,7 @@ abstract public class AbstractClearReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d("LocalNotification", "AbstractClearReceiver.onReceive()");
         Bundle bundle  = intent.getExtras();
         JSONObject options;
 
@@ -54,12 +57,19 @@ abstract public class AbstractClearReceiver extends BroadcastReceiver {
             String data = bundle.getString(Options.EXTRA);
             options = new JSONObject(data);
         } catch (JSONException e) {
+            Log.e("LocalNotification", e.getMessage());
             e.printStackTrace();
             return;
         }
 
-        Notification notification =
-                new Builder(context, options).build();
+        Notification notification;
+
+        if(!options.optBoolean("isSummary", false)){
+            notification = new Builder(context, options).build();
+        }else{
+            Log.d("LocalNotification", "AbstractClearReceiver.onReceive() SummaryNotification");
+            notification = new SummaryBuilder(context, options).build();
+        }
 
         onClear(notification);
     }

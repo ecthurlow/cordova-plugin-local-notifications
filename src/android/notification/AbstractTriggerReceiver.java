@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import android.util.Log;
 
 /**
  * Abstract broadcast receiver for local notifications. Creates the
@@ -68,8 +69,33 @@ abstract public class AbstractTriggerReceiver extends BroadcastReceiver {
         if (isFirstAlarmInFuture(options))
             return;
 
-        Builder builder = new Builder(options);
-        Notification notification = buildNotification(builder);
+        Notification notification;
+        Builder builder;
+        SummaryNotification.incrementSummaryCount(context);
+
+        if(SummaryNotification.pending <= 1){
+            // Normal notification
+            builder = new Builder(options);
+            
+        }else{
+            // Summary notification
+            try{
+                // store in file in the future?
+                JSONObject jsonOpts = new JSONObject("{" + 
+                    "isSummary: true," +
+                    "icon: " + "'res://icon'," +
+                    "smallIcon: " + "'res://ic_popup_reminder'" +
+                    "}");
+                builder = new SummaryBuilder(context, jsonOpts);
+
+            }catch(JSONException e){
+                Log.d("LocalNotification", e.getMessage());
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        notification = buildNotification(builder);
         boolean updated = notification.isUpdate();
 
         onTrigger(notification, updated);
@@ -82,6 +108,8 @@ abstract public class AbstractTriggerReceiver extends BroadcastReceiver {
      *      Wrapper around the local notification
      * @param updated
      *      If an update has triggered or the original
+     * @param context
+     *      Application context
      */
     abstract public void onTrigger (Notification notification, boolean updated);
 

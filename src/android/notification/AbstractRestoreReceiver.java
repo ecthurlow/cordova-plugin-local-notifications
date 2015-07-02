@@ -30,7 +30,7 @@ import android.content.Intent;
 import org.json.JSONObject;
 
 import java.util.List;
-
+import android.util.Log;
 /**
  * This class is triggered upon reboot of the device. It needs to re-register
  * the alarms with the AlarmManager since these alarms are lost in case of
@@ -48,6 +48,7 @@ abstract public class AbstractRestoreReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive (Context context, Intent intent) {
+        Log.d("LocalNotification", "AbstractRestoreReceiver.onReceive()");
         Manager notificationMgr =
                 Manager.getInstance(context);
 

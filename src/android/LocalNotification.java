@@ -23,6 +23,7 @@
 
 package de.appplant.cordova.plugin.localnotification;
 
+import android.util.Log;
 import android.os.Build;
 
 import org.apache.cordova.CallbackContext;
@@ -37,8 +38,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 import de.appplant.cordova.plugin.notification.Manager;
 import de.appplant.cordova.plugin.notification.Notification;
+import de.appplant.cordova.plugin.notification.SummaryNotification;
 
 /**
  * This plugin utilizes the Android AlarmManager in combination with local
@@ -133,7 +141,11 @@ public class LocalNotification extends CordovaPlugin {
 
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                if (action.equals("schedule")) {
+                if (action.equals("setSummary")){
+                    setSummary(args);
+                    command.success();
+                }
+                else if (action.equals("schedule")) {
                     schedule(args);
                     command.success();
                 }
@@ -147,6 +159,7 @@ public class LocalNotification extends CordovaPlugin {
                 }
                 else if (action.equals("cancelAll")) {
                     cancelAll();
+                    SummaryNotification.setSummaryCount(0, webView.getContext());
                     command.success();
                 }
                 else if (action.equals("clear")) {
@@ -196,6 +209,15 @@ public class LocalNotification extends CordovaPlugin {
                 else if (action.equals("deviceready")) {
                     deviceready();
                 }
+                else if (action.equals("incrementSummaryCount")) {
+                    SummaryNotification.incrementSummaryCount(webView.getContext());
+                }
+                else if (action.equals("decrementSummaryCount")) {
+                    SummaryNotification.decrementSummaryCount(webView.getContext());
+                }
+                else if (action.equals("setSummaryCount")) {
+                    SummaryNotification.setSummaryCount(args.optInt(0), webView.getContext());
+                }
             }
         });
 
@@ -217,6 +239,35 @@ public class LocalNotification extends CordovaPlugin {
 
             fireEvent("schedule", notification);
         }
+    }
+
+    /**
+     * Set a summary local notification.
+     *
+     * @param arrOptions
+     *      Properties for summary local notification
+     */
+    private void setSummary (JSONArray arrOptions){
+        JSONObject options = arrOptions.optJSONObject(0);
+
+        String title = options.optString("title", "");
+        String text = options.optString("text", "");
+        String tag = options.optString("tag", "SUMMARY");
+
+        if (title.isEmpty()) {
+            title = cordova.getActivity().getApplicationInfo().loadLabel(
+                    cordova.getActivity().getPackageManager()).toString();
+        }
+        if (text.isEmpty()){
+            text = "%d new items";
+        }
+        if (tag.isEmpty()){
+            tag = "SUMMARY";
+        }
+        
+        SummaryNotification.text = text;
+        SummaryNotification.tag = tag;
+
     }
 
     /**

@@ -175,6 +175,13 @@ public class Options {
     }
 
     /**
+     * summary flag for local notifications.
+     */    
+    public Boolean isSummary() {
+        return options.optBoolean("isSummary", false);
+    }
+
+    /**
      * ongoing flag for local notifications.
      */
     public Boolean isOngoing() {

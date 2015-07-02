@@ -26,7 +26,7 @@ package de.appplant.cordova.plugin.localnotification;
 import de.appplant.cordova.plugin.notification.AbstractRestoreReceiver;
 import de.appplant.cordova.plugin.notification.Builder;
 import de.appplant.cordova.plugin.notification.Notification;
-
+import android.util.Log;
 /**
  * This class is triggered upon reboot of the device. It needs to re-register
  * the alarms with the AlarmManager since these alarms are lost in case of
@@ -42,6 +42,7 @@ public class RestoreReceiver extends AbstractRestoreReceiver {
      */
     @Override
     public void onRestore (Notification notification) {
+        Log.d("LocalNotification", "RestoreReceiver.onRestore()");
         if (notification.isScheduled()) {
             notification.schedule();
         }
