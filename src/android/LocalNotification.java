@@ -250,24 +250,21 @@ public class LocalNotification extends CordovaPlugin {
     private void setSummary (JSONArray arrOptions){
         JSONObject options = arrOptions.optJSONObject(0);
 
-        String title = options.optString("title", "");
         String text = options.optString("text", "");
         String tag = options.optString("tag", "SUMMARY");
 
-        if (title.isEmpty()) {
-            title = cordova.getActivity().getApplicationInfo().loadLabel(
-                    cordova.getActivity().getPackageManager()).toString();
+        try{
+            if (text.isEmpty()){
+                options.put("text", "%d new items");
+            }
+            if (tag.isEmpty()){
+                options.put("tag", "SUMMARY");
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
         }
-        if (text.isEmpty()){
-            text = "%d new items";
-        }
-        if (tag.isEmpty()){
-            tag = "SUMMARY";
-        }
-        
-        SummaryNotification.text = text;
-        SummaryNotification.tag = tag;
 
+        SummaryNotification.setSummaryJson(options, webView.getContext());
     }
 
     /**

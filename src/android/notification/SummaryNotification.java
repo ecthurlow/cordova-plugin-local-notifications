@@ -12,12 +12,21 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+
+import org.json.JSONObject;
+
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import org.json.JSONException;
 
 
 public class SummaryNotification extends Notification {
     private static final String SUMMARY_FILENAME = "summary.txt";
+    private static final String SUMMARY_JSON_FILENAME = "summary_json.txt";
     private static final String LOG_TAG = "SummaryNotification";
 
     public static int pending = 0;
@@ -88,6 +97,60 @@ public class SummaryNotification extends Notification {
         getNotMgr().cancel(tag, 0);
 
         unpersist();
+    }
+
+    public static void setSummaryJson(JSONObject arrOptions, Context _context){
+        try {
+            Log.e(LOG_TAG, "setSummaryJson(): arrOptions" + arrOptions.toString());
+            String path = _context.getExternalFilesDir(null).getAbsolutePath();
+            File file = new File(path, SUMMARY_JSON_FILENAME);
+            Log.e(LOG_TAG, "setSummaryJson(): " + file.toString());
+
+            FileWriter writer = new FileWriter(file);
+
+            writer.write(arrOptions.toString());
+            writer.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the manifest?");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // reads the summary file as a string, parses the contents as an integer, and returns the result
+    public static JSONObject getSummaryJson(Context _context){
+        StringBuilder sb = new StringBuilder();
+        
+        try{
+            String path = _context.getExternalFilesDir(null).getAbsolutePath();
+            File file = new File(path, SUMMARY_JSON_FILENAME);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+            
+            String str;
+            while ((str=in.readLine()) != null) {
+                sb.append(str);
+            }
+
+            in.close();
+            Log.d(LOG_TAG, "getSummaryJson(): " + sb.toString());
+            return new JSONObject(sb.toString()); 
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, e.toString());
+            Log.e(LOG_TAG, "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the manifest?");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, e.toString());
+        } catch (JSONException e){
+            e.printStackTrace();
+            Log.e(LOG_TAG, e.toString());
+        }
+        
+        return new JSONObject();
     }
 
     // writes _count to the summary file and sets pending to _count

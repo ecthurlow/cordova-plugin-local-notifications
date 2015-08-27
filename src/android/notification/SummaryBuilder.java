@@ -57,7 +57,7 @@ public class SummaryBuilder extends Builder{
     public SummaryNotification build() {
         Log.d("LocalNotification", "SummaryBuilder.build()");
          // Insert pending into text, if slot is defined
-        String summaryText = new String(SummaryNotification.text).replace("%d", Integer.toString(SummaryNotification.pending));
+        String summaryText = new String(options.getText()).replace("%d", Integer.toString(SummaryNotification.pending));
 
         Uri sound = options.getSoundUri();
         NotificationCompat.BigTextStyle style;

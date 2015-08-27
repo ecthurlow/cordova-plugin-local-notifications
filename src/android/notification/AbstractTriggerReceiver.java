@@ -79,20 +79,7 @@ abstract public class AbstractTriggerReceiver extends BroadcastReceiver {
             
         }else{
             // Summary notification
-            try{
-                // store in file in the future?
-                JSONObject jsonOpts = new JSONObject("{" + 
-                    "isSummary: true," +
-                    "icon: " + "'res://icon'," +
-                    "smallIcon: " + "'res://ic_popup_reminder'" +
-                    "}");
-                builder = new SummaryBuilder(context, jsonOpts);
-
-            }catch(JSONException e){
-                Log.d("LocalNotification", e.getMessage());
-                e.printStackTrace();
-                return;
-            }
+            builder = new SummaryBuilder(context, SummaryNotification.getSummaryJson(context));
         }
 
         notification = buildNotification(builder);
