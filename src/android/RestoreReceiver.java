@@ -45,6 +45,8 @@ public class RestoreReceiver extends AbstractRestoreReceiver {
         Log.d("LocalNotification", "RestoreReceiver.onRestore()");
         if (notification.isScheduled()) {
             notification.schedule();
+        } else {
+            notification.cancel();
         }
     }
 

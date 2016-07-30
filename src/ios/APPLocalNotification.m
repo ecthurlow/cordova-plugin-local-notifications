@@ -393,7 +393,7 @@
         }
 
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                    messageAsDictionary:notifications[0]];
+                               messageAsDictionary:[notifications firstObject]];
 
         [self.commandDelegate sendPluginResult:result
                                     callbackId:command.callbackId];
@@ -571,12 +571,11 @@
 {
     UILocalNotification* notification = [localNotification object];
 
-    if ([notification wasUpdated])
+    if ([notification userInfo] == NULL || [notification wasUpdated])
         return;
 
     NSTimeInterval timeInterval = [notification timeIntervalSinceLastTrigger];
-
-    NSString* event = (timeInterval <= 1 && deviceready) ? @"trigger" : @"click";
+    NSString* event = timeInterval < 0.2 && deviceready ? @"trigger" : @"click";
 
     [self fireEvent:event notification:notification];
 
@@ -616,8 +615,7 @@
  */
 - (void) didRegisterUserNotificationSettings:(UIUserNotificationSettings*)settings
 {
-    if (_command)
-    {
+    if (_command) {
         [self hasPermission:_command];
         _command = NULL;
     }
@@ -631,25 +629,7 @@
  */
 - (void) pluginInitialize
 {
-    NSNotificationCenter* center = [NSNotificationCenter
-                                    defaultCenter];
-
     eventQueue = [[NSMutableArray alloc] init];
-
-    [center addObserver:self
-               selector:@selector(didReceiveLocalNotification:)
-                   name:CDVLocalNotification
-                 object:nil];
-
-    [center addObserver:self
-               selector:@selector(didFinishLaunchingWithOptions:)
-                   name:UIApplicationDidFinishLaunchingNotification
-                 object:nil];
-
-    [center addObserver:self
-               selector:@selector(didRegisterUserNotificationSettings:)
-                   name:UIApplicationRegisterUserNotificationSettings
-                 object:nil];
 }
 
 /**

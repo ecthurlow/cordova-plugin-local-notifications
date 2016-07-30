@@ -69,7 +69,6 @@ abstract public class AbstractTriggerReceiver extends BroadcastReceiver {
         if (isFirstAlarmInFuture(options))
             return;
 
-        Notification notification;
         Builder builder;
         SummaryNotification.incrementSummaryCount(context);
 
@@ -82,8 +81,8 @@ abstract public class AbstractTriggerReceiver extends BroadcastReceiver {
             builder = new SummaryBuilder(context, SummaryNotification.getSummaryJson(context));
         }
 
-        notification = buildNotification(builder);
-        boolean updated = notification.isUpdate();
+        Notification notification = buildNotification(builder);
+        boolean updated = notification.isUpdate(false);
 
         onTrigger(notification, updated);
     }

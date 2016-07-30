@@ -56,15 +56,14 @@ public class SummaryBuilder extends Builder{
      */
     public SummaryNotification build() {
         Log.d("LocalNotification", "SummaryBuilder.build()");
+
          // Insert pending into text, if slot is defined
         String summaryText = new String(options.getText()).replace("%d", Integer.toString(SummaryNotification.pending));
 
-        Uri sound = options.getSoundUri();
-        NotificationCompat.BigTextStyle style;
+        Uri sound     = options.getSoundUri();
+        int smallIcon = options.getSmallIcon();
+        int ledColor  = options.getLedColor();
         NotificationCompat.Builder builder;
-
-        style = new NotificationCompat.BigTextStyle()
-                .bigText(summaryText);
 
         builder = new NotificationCompat.Builder(context)
                 .setDefaults(0)
@@ -72,15 +71,23 @@ public class SummaryBuilder extends Builder{
                 .setContentText(summaryText)
                 .setNumber(SummaryNotification.pending)
                 .setTicker(summaryText)
-                .setSmallIcon(options.getSmallIcon())
-                .setLargeIcon(options.getIconBitmap())
                 .setAutoCancel(options.isAutoClear())
                 .setOngoing(options.isOngoing())
-                .setStyle(style)
-                .setLights(options.getLedColor(), 500, 500);
+                .setColor(options.getColor());
+
+        if (ledColor != 0) {
+            builder.setLights(ledColor, 100, 100);
+        }
 
         if (sound != null) {
             builder.setSound(sound);
+        }
+
+        if (smallIcon == 0) {
+            builder.setSmallIcon(options.getIcon());
+        } else {
+            builder.setSmallIcon(options.getSmallIcon());
+            builder.setLargeIcon(options.getIconBitmap());
         }
 
         applyDeleteReceiver(builder);
@@ -114,15 +121,14 @@ public class SummaryBuilder extends Builder{
         if (clearReceiver == null)
             return;
 
-
-        Intent deleteIntent = new Intent(context, clearReceiver)
+        Intent intent = new Intent(context, clearReceiver)
                 .setAction(SummaryNotification.tag)
                 .putExtra(Options.EXTRA, bundleOptions());
 
-        PendingIntent dpi = PendingIntent.getBroadcast(
-                context, 0, deleteIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent deleteIntent = PendingIntent.getBroadcast(
+                context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        builder.setDeleteIntent(dpi);
+        builder.setDeleteIntent(deleteIntent);
     }
 
     /**
@@ -141,10 +147,10 @@ public class SummaryBuilder extends Builder{
                 .putExtra(Options.EXTRA, bundleOptions())
                 .setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
-        int requestCode = new Random().nextInt();
+        int reqCode = new Random().nextInt();
 
         PendingIntent contentIntent = PendingIntent.getActivity(
-                context, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                context, reqCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         builder.setContentIntent(contentIntent);
     }

@@ -53,54 +53,109 @@ exports.setDefaults = function (newDefaults) {
 };
 
 /**
- * Schedule a new local notification.
+ * Set summary options for a summary local notification.
  *
- * @param {Object} opts
+  * @param {Object} msgs
  *      The notification properties
  * @param {Function} callback
  *      A function to be called after the notification has been canceled
  * @param {Object?} scope
  *      The scope for the callback function
+ * @param {Object?} args
+ *      skipPermission:true schedules the notifications immediatly without
+ *                          registering or checking for permission
  */
-exports.schedule = function (opts, callback, scope) {
-    this.registerPermission(function(granted) {
+exports.setSummary = function (msgs, callback, scope, args) {
+    var fn = function(granted) {
 
-        if (!granted)
-            return;
+        if (!granted) return;
 
-        var notifications = Array.isArray(opts) ? opts : [opts];
+        var notification = Array.isArray(msgs) ? msgs[0] : msgs;
+
+        this.mergeWithDefaults(notification);
+        this.convertProperties(notification);
+
+        this.exec('setSummary', [notification], callback, scope);
+    };
+
+    if (args && args.skipPermission) {
+        fn.call(this, true);
+    } else {
+        this.registerPermission(fn, this);
+    }
+};
+
+/**
+ * Schedule a new local notification.
+ *
+ * @param {Object} msgs
+ *      The notification properties
+ * @param {Function} callback
+ *      A function to be called after the notification has been canceled
+ * @param {Object?} scope
+ *      The scope for the callback function
+ * @param {Object?} args
+ *      skipPermission:true schedules the notifications immediatly without
+ *                          registering or checking for permission
+ */
+exports.schedule = function (msgs, callback, scope, args) {
+    var fn = function(granted) {
+
+        if (!granted) return;
+
+        var notifications = Array.isArray(msgs) ? msgs : [msgs];
 
         for (var i = 0; i < notifications.length; i++) {
-            var properties = notifications[i];
+            var notification = notifications[i];
 
-            this.mergeWithDefaults(properties);
-            this.convertProperties(properties);
+            this.mergeWithDefaults(notification);
+            this.convertProperties(notification);
         }
 
         this.exec('schedule', notifications, callback, scope);
-    }, this);
+    };
+
+    if (args && args.skipPermission) {
+        fn.call(this, true);
+    } else {
+        this.registerPermission(fn, this);
+    }
 };
 
 /**
  * Update existing notifications specified by IDs in options.
  *
- * @param {Object} options
+ * @param {Object} notifications
  *      The notification properties to update
  * @param {Function} callback
  *      A function to be called after the notification has been updated
  * @param {Object?} scope
  *      The scope for the callback function
+ * @param {Object?} args
+ *      skipPermission:true schedules the notifications immediatly without
+ *                          registering or checking for permission
  */
-exports.update = function (opts, callback, scope) {
-    var notifications = Array.isArray(opts) ? opts : [opts];
+exports.update = function (msgs, callback, scope, args) {
+    var fn = function(granted) {
 
-    for (var i = 0; i < notifications.length; i++) {
-        var properties = notifications[i];
+        if (!granted) return;
 
-        this.convertProperties(properties);
+        var notifications = Array.isArray(msgs) ? msgs : [msgs];
+
+        for (var i = 0; i < notifications.length; i++) {
+            var notification = notifications[i];
+
+            this.convertProperties(notification);
+        }
+
+        this.exec('update', notifications, callback, scope);
+    };
+
+    if (args && args.skipPermission) {
+        fn.call(this, true);
+    } else {
+        this.registerPermission(fn, this);
     }
-
-    this.exec('update', notifications, callback, scope);
 };
 
 /**
@@ -414,6 +469,13 @@ exports.hasPermission = function (callback, scope) {
  *      The callback function's scope
  */
 exports.registerPermission = function (callback, scope) {
+
+    if (this._registered) {
+        return this.hasPermission(callback, scope);
+    } else {
+        this._registered = true;
+    }
+
     var fn = this.createCallbackFn(callback, scope);
 
     if (device.platform != 'iOS') {
@@ -422,6 +484,42 @@ exports.registerPermission = function (callback, scope) {
     }
 
     exec(fn, null, 'LocalNotification', 'registerPermission', []);
+};
+
+/**
+ * Increment the number in the notifications file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.incrementSummaryCount = function (callback, scope) {
+    this.exec('incrementSummaryCount', null, callback, scope);
+};
+
+/**
+ * decrement the number in the notifications file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.decrementSummaryCount = function (callback, scope) {
+    this.exec('decrementSummaryCount', null, callback, scope);
+};
+
+/**
+ * sets the number in the notification summary file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.setSummaryCount = function (count, callback, scope) {
+    this.exec('setSummaryCount', count, callback, scope);
 };
 
 
@@ -440,6 +538,9 @@ exports.registerPermission = function (callback, scope) {
  *      The callback function's scope
  */
 exports.on = function (event, callback, scope) {
+
+    if (typeof callback !== "function")
+        return;
 
     if (!this._listener[event]) {
         this._listener[event] = [];
