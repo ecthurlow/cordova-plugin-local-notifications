@@ -63,7 +63,7 @@ exports.applyPlatformSpecificOptions = function () {
 
     switch (device.platform) {
     case 'Android':
-        defaults.icon      = 'res://ic_popup_reminder';
+        defaults.icon      = 'res://icon';
         defaults.smallIcon = undefined;
         defaults.ongoing   = false;
         defaults.autoClear = true;
