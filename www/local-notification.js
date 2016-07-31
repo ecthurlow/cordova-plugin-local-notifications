@@ -45,6 +45,23 @@ exports.setDefaults = function (defaults) {
 };
 
 /**
+ * Set summary options for a summary local notification.
+ *
+ * @param {Object} notifications
+ *      The notification properties
+ * @param {Function} callback
+ *      A function to be called after the notification has been canceled
+ * @param {Object?} scope
+ *      The scope for the callback function
+ * @param {Object?} args
+ *      skipPermission:true schedules the notifications immediatly without
+ *                          registering or checking for permission
+ */
+exports.setSummary = function (notifications, callback, scope, args) {
+    this.core.setSummary(notifications, callback, scope, args);
+};
+
+/**
  * Schedule a new local notification.
  *
  * @param {Object} notifications
@@ -342,6 +359,42 @@ exports.promptForPermission = function () {
     console.warn('Depreated: Please use `notification.local.registerPermission` instead.');
 
     this.registerPermission.apply(this, arguments);
+};
+
+/**
+ * Increment the number in the notifications file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.incrementSummaryCount = function (callback, scope) {
+    this.core.incrementSummaryCount(callback, scope);
+};
+
+/**
+ * decrement the number in the notifications file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.decrementSummaryCount = function (callback, scope) {
+    this.core.decrementSummaryCount(callback, scope);
+};
+
+/**
+ * sets the number in the notification summary file
+ *
+ * @param {Function} callback
+ *      The function to be exec as the callback
+ * @param {Object?} scope
+ *      The callback function's scope
+ */
+exports.setSummaryCount = function (count, callback, scope) {
+    this.core.setSummaryCount(count, callback, scope);
 };
 
 
